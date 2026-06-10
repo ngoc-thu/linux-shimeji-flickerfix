@@ -1,4 +1,4 @@
-# linux-shimeji-flickerfix
+# shimeji-ubuntu
 
 <p align="center">
   <img src="docs/images/linux-shimeji-icon.png" alt="linux-shimeji icon" width="64" height="64" />
@@ -104,8 +104,8 @@ Wayland is not an expected target for this codebase.
 ## Build
 
 ```bash
-git clone https://github.com/ngoc-thu/linux-shimeji-flickerfix.git
-cd linux-shimeji-flickerfix
+git clone https://github.com/ngoc-thu/shimeji-ubuntu.git
+cd shimeji-ubuntu
 ant clean jar
 ```
 
