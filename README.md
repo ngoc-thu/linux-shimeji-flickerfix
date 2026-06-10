@@ -1,6 +1,10 @@
 # shimeji-ubuntu
 
 <p align="center">
+  <img src="docs/images/repo-banner.png" alt="shimeji-ubuntu banner" width="100%" />
+</p>
+
+<p align="center">
   <img src="docs/images/linux-shimeji-icon.png" alt="linux-shimeji icon" width="64" height="64" />
 </p>
 
