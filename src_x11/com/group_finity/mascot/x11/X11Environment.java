@@ -15,8 +15,13 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.Iterator;
 import java.util.Random;
+import java.util.HashSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 class X11Environment extends Environment {
+	private static final Logger log = Logger.getLogger(X11Environment.class.getName());
+	private static final Set<Integer> loggedWindowIds = new HashSet<Integer>();
 	
 // The X display. See X.java 
 	private Display display = new Display(); 
@@ -147,10 +152,20 @@ class X11Environment extends Environment {
 					}
 				// Get window attributes.
 					id = allWindows[i].getID();
-					w = allWindows[i].getGeometry().width + wmod;
-					h = allWindows[i].getGeometry().height + hmod;
-					x = allWindows[i].getBounds().x + xoffset;
-					y = allWindows[i].getBounds().y + yoffset;
+					Rectangle frameBounds = allWindows[i].getBounds();
+					Window.Geometry geometry = allWindows[i].getGeometry();
+					w = frameBounds.width + wmod;
+					h = frameBounds.height + hmod;
+					x = frameBounds.x + xoffset;
+					y = frameBounds.y + yoffset;
+					if (!loggedWindowIds.contains(id)) {
+						loggedWindowIds.add(id);
+						log.log(Level.INFO,
+							"Window debug id={0} title={1} geometry=({2},{3},{4},{5}) frameBounds=({6},{7},{8},{9}) final=({10},{11},{12},{13})",
+							new Object[] { id, allWindows[i].getTitle(), geometry.x, geometry.y, geometry.width, geometry.height,
+								frameBounds.x, frameBounds.y, frameBounds.width, frameBounds.height,
+								x, y, w, h });
+					}
 					if (IE.containsKey(id)) {
 						a = IE.get(id);
 						int desktop = allWindows[i].getDesktop();
@@ -266,4 +281,3 @@ class X11Environment extends Environment {
 
 }
 	
-

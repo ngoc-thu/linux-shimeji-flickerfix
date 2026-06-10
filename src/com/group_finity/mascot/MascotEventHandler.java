@@ -105,6 +105,54 @@ public class MascotEventHandler implements MouseListener {
 
 		popup.add(disposeMenu);
 
+		popup.add(new JSeparator());
+
+		final JMenuItem openWindowConfMenu = new JMenuItem("Settings: Open window.conf");
+		final JMenuItem openSettingsGuiMenu = new JMenuItem("Settings: Open Settings GUI");
+		openSettingsGuiMenu.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				Main.getInstance().launchSettingsGui();
+			}
+		});
+
+		openWindowConfMenu.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				Main.getInstance().openPath(System.getProperty("user.dir") + java.io.File.separator + "window.conf");
+			}
+		});
+
+		final JMenuItem openTitlesConfMenu = new JMenuItem("Settings: Open titles.conf");
+		openTitlesConfMenu.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				Main.getInstance().openPath(System.getProperty("user.dir") + java.io.File.separator + "titles.conf");
+			}
+		});
+
+		final JMenuItem openAppFolderMenu = new JMenuItem("Settings: Open app folder");
+		openAppFolderMenu.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				Main.getInstance().openPath(System.getProperty("user.dir"));
+			}
+		});
+
+		final JMenuItem resetWindowConfMenu = new JMenuItem("Settings: Reset window.conf");
+		resetWindowConfMenu.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				Main.getInstance().resetWindowConf();
+			}
+		});
+
+		popup.add(openSettingsGuiMenu);
+		popup.add(openWindowConfMenu);
+		popup.add(openTitlesConfMenu);
+		popup.add(openAppFolderMenu);
+		popup.add(resetWindowConfMenu);
+
 		if (MascotEventHandler.isShowSystemTrayMenu()) {
 
 			popup.add(new JSeparator());

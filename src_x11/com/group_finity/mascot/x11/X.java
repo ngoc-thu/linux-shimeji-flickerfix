@@ -719,7 +719,29 @@ public class X {
             int xVal = x.getValue();
             int yVal = y.getValue();
 
-            return new Rectangle(xVal, yVal, xVal + width.getValue(), yVal + height.getValue());
+            int left = 0;
+            int right = 0;
+            int top = 0;
+            int bottom = 0;
+
+            try {
+                byte[] extents = getProperty(X11.XA_CARDINAL, "_NET_FRAME_EXTENTS");
+                if (extents != null && extents.length >= 16) {
+                    left = bytesToInt(extents, 0);
+                    right = bytesToInt(extents, 4);
+                    top = bytesToInt(extents, 8);
+                    bottom = bytesToInt(extents, 12);
+                }
+            } catch (X11Exception e) {
+                // Fall back to the client geometry when the WM does not expose frame extents.
+            }
+
+            return new Rectangle(
+                xVal - left,
+                yVal - top,
+                width.getValue() + left + right,
+                height.getValue() + top + bottom
+            );
         }
 
         /**
@@ -1151,4 +1173,3 @@ public class X {
         }
     }
 }
-

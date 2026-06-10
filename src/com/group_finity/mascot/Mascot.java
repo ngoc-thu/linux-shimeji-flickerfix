@@ -148,6 +148,8 @@ public class Mascot {
 				if (!getWindow().asJWindow().isVisible()) {
 					getWindow().asJWindow().setVisible(true);
 				}
+				getWindow().asJWindow().setAlwaysOnTop(true);
+				getWindow().asJWindow().toFront();
 
 				// 再描画
 				getWindow().updateImage();
@@ -156,9 +158,8 @@ public class Mascot {
 					getWindow().asJWindow().setVisible(false);
 				}
 			}
-			if (time == 2 || time == 30) {
-				getWindow().setToDock(environment.getDockValue());
-			}
+			// Do not force the mascot into DOCK window type on modern desktops.
+			// That can place it in an unexpected layer under/through decorated windows.
 			// Old X11 workaround hid the window on specific ticks, which can cause
 			// visible flicker on modern compositors. Keep the mascot visible and
 			// rely on the regular image update path instead.

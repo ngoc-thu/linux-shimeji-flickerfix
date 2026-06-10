@@ -10,7 +10,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.Desktop;
 import java.io.IOException;
+import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -58,6 +60,11 @@ public class Main {
 	private final Manager manager = new Manager();
 
 	private final Configuration configuration = new Configuration();
+
+	private static final String APP_ROOT = System.getProperty("user.dir");
+	private static final String WINDOW_CONF = APP_ROOT + File.separator + "window.conf";
+	private static final String TITLES_CONF = APP_ROOT + File.separator + "titles.conf";
+	private static final String SETTINGS_SCRIPT = APP_ROOT + File.separator + "run-settings.sh";
 
 	public static void main(final String[] args) {
 		System.setProperty("jna.nosys", "true");
@@ -153,6 +160,41 @@ public class Main {
 			}
 		});
 
+		final MenuItem openWindowConfMenu = new MenuItem("Settings: Open window.conf");
+		openWindowConfMenu.addActionListener(new ActionListener() {
+			public void actionPerformed(final ActionEvent event) {
+				openPath(WINDOW_CONF);
+			}
+		});
+
+		final MenuItem openTitlesConfMenu = new MenuItem("Settings: Open titles.conf");
+		openTitlesConfMenu.addActionListener(new ActionListener() {
+			public void actionPerformed(final ActionEvent event) {
+				openPath(TITLES_CONF);
+			}
+		});
+
+		final MenuItem openSettingsGuiMenu = new MenuItem("Settings: Open Settings GUI");
+		openSettingsGuiMenu.addActionListener(new ActionListener() {
+			public void actionPerformed(final ActionEvent event) {
+				launchSettingsGui();
+			}
+		});
+
+		final MenuItem openAppFolderMenu = new MenuItem("Settings: Open app folder");
+		openAppFolderMenu.addActionListener(new ActionListener() {
+			public void actionPerformed(final ActionEvent event) {
+				openPath(APP_ROOT);
+			}
+		});
+
+		final MenuItem resetWindowConfMenu = new MenuItem("Settings: Reset window.conf");
+		resetWindowConfMenu.addActionListener(new ActionListener() {
+			public void actionPerformed(final ActionEvent event) {
+				resetWindowConf();
+			}
+		});
+
 		//  Restore IE not implemented yet
 		//final MenuItem restoreMenu = new MenuItem("IEを元に戻す");
 		//restoreMenu.addActionListener(new ActionListener() {
@@ -174,6 +216,12 @@ public class Main {
 		trayPopup.add(increaseMenu);
 		trayPopup.add(gatherMenu);
 		trayPopup.add(oneMenu);
+		trayPopup.add(new MenuItem("-"));
+		trayPopup.add(openSettingsGuiMenu);
+		trayPopup.add(openWindowConfMenu);
+		trayPopup.add(openTitlesConfMenu);
+		trayPopup.add(openAppFolderMenu);
+		trayPopup.add(resetWindowConfMenu);
 //		trayPopup.add(restoreMenu);
 		trayPopup.add(new MenuItem("-"));
 		trayPopup.add(closeMenu);
@@ -254,6 +302,39 @@ public class Main {
 		this.getManager().stop();
 
 		System.exit(0);
+	}
+
+	public void openPath(final String path) {
+		try {
+			final Desktop desktop = Desktop.getDesktop();
+			final File file = new File(path);
+			if (file.isDirectory()) {
+				desktop.open(file);
+			} else if (file.exists()) {
+				desktop.edit(file);
+			}
+		} catch (final Exception e) {
+			log.log(Level.WARNING, "Failed to open path: " + path, e);
+		}
+	}
+
+	public void resetWindowConf() {
+		try {
+			java.nio.file.Files.write(
+				java.nio.file.Paths.get(WINDOW_CONF),
+				("Put window offsets on the following lines in this order : x, y, width, height. No entry will default to 0.\n0\n0\n0\n0\n").getBytes(java.nio.charset.StandardCharsets.UTF_8)
+			);
+		} catch (final IOException e) {
+			log.log(Level.WARNING, "Failed to reset window.conf", e);
+		}
+	}
+
+	public void launchSettingsGui() {
+		try {
+			new ProcessBuilder(SETTINGS_SCRIPT).directory(new File(APP_ROOT)).start();
+		} catch (final IOException e) {
+			log.log(Level.WARNING, "Failed to launch Settings GUI", e);
+		}
 	}
 
 	public Configuration getConfiguration() {

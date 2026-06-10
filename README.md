@@ -1,111 +1,93 @@
-# linux-shimeji-flickerfix
+2025 - Archived 
+=================
+This program is ancient and requires a legacy Java version, I can't help you with any issues you encounter so use at your own discretion.
 
-A personal fork of `estenv/linux-shimeji` with small practical fixes for running on a modern Ubuntu desktop.
+I had plans to rewrite the entire program in another language and with proper Wayland support but obtaining the full active window tree with dimensions seems quite impossible in Wayland Gnome/KDE. 
 
-## What changed in this fork
-
-### Flicker reduction experiment
-This fork removes an old visibility toggle in `src/com/group_finity/mascot/Mascot.java`:
-
-- upstream hid the mascot window on specific ticks with `setVisible(false)`
-- on modern compositors, that behavior can show up as visible flicker while the mascot moves
-- this fork keeps the mascot visible and relies on the normal image update path instead
-
-This is intended to reduce the obvious blinking/flicker seen on Ubuntu GNOME/X11. It is **not** a guarantee that all rendering issues are solved, because the codebase is still old Java/X11 code.
-
-### Modern build compatibility
-This fork also updates `build.xml` so the project can be rebuilt with a current JDK + Ant toolchain:
-
-- `source="8"`
-- `target="8"`
-- `debuglevel="lines,vars,source"`
-
-That means you can rebuild on a modern Ubuntu system without needing an old Java 6 era setup.
-
-## Current status
-
-- Best suited for **X11 sessions**
-- Still a legacy codebase
-- Wayland support is not expected
-- Rendering behavior may still vary by compositor / GPU / desktop environment
+If the Wayland situation changes I'll rewrite this but it is quite grim: Hyprland seems like the only WM that could be supported with a reasonable amount of effort.
 
 ![Shimeji for Linux](http://i.imgur.com/efHyX.png "Shimeji for Linux")
+Shimeji for Linux
+=================
 
-## Requirements
+This is a Linux version of the popular desktop mascot program, Shimeji.
 
-A compositing manager is still recommended for old X11 desktops.
+I appreciate any bug reports or suggestions. Use the issue tracker here or contact me directly on IRC (Rizon) where I'm called 'asdfman'.
 
-For this fork on modern Ubuntu, a practical setup is:
 
-- X11 session
-- `openjdk-21-jdk` or another current JDK
-- `ant`
+Changelog
+=========
+v1.05
+- Greatly reduced CPU usage (noticeable with few active mascots)
+- Remake of multi monitor behavior 
 
-Example install:
+v1.04
+- Window layering detection.
+- Fixed multi monitor behavior
 
-```bash
-sudo apt-get update
-sudo apt-get install -y openjdk-21-jdk ant
-```
+v1.03
+- Complete remakes of the window state/type handling. AwesomeWM-users should have no more issues.
+- A conversion script for Shimeji-EE configurations is now included.
 
-## Usage
+v1.02
+- Full functionality with all standard Behavior.xml and Actions.xml files. Feel free to use any Shimeji you find and edit the files as you see fit.
 
-Clone the repository:
+v1.01
+- All normal desktop windows should now be detected and interacted with correctly, titles.conf now defaults to an empty file.
+- The mascots are now set a 'dock' window type property, using compton/xcompmgr with -C will not draw window shadows on them.
 
-```bash
-git clone https://github.com/ngoc-thu/linux-shimeji-flickerfix.git
-cd linux-shimeji-flickerfix
-```
+22.4.2012 v1.0
+- Initial release, all basic functionality implemented
 
-Run it:
+Requirements
+===============
+A compositing manager, [Compton](http://github.com/chjj/compton) is highly recommended. 
 
-```bash
-./launch.sh
-```
+Tested with both OpenJDK 6 and SunJDK 6 JRE's. There were some issues on Gnome and KDE when using OpenJDK, if you experience them the only solution I can offer is using Sun JRE, should solve all problems. 
 
-Build it:
 
-```bash
-ant clean jar
-```
+Usage
+========
+Obtain the repository :
+git clone https://github.com/asdfman/linux-shimeji.git OR download a zip archive on the github page
 
-A prebuilt `Shimeji.jar` is included, but rebuilding is recommended if you modify the source.
+To run, execute launch.sh in the project root directory. (eg. ./launch.sh)
 
-## Configuration
+To build, execute 'ant' in the project root directory.
 
-- `window.conf` — set window dimensions to match your window decorations. If you're using a plain WM with no decorations, zero on all values or an empty file should be accurate.
-- `titles.conf` — enter window titles, one per line, case insensitive. The mascots will interact with these windows only. If no window titles are specified, all windows will be interacted with. Leaving this file empty should be ideal for most people.
+Note that the program comes pre-compiled and you do not need to build unless you plan to modify the source.
 
-For more information refer to the configuration files.
 
-## Obtaining more Shimejis
+Configuration
+================
+- window.conf - set window dimensions to match your window decorations. If you're using a plain WM with no decorations, zero on all values or an empty file should be accurate
 
-You can find thousands on DeviantArt and Pixiv (tag: `しめじ`). This version uses Japanese `Actions.xml` and `Behavior.xml` files.
+- titles.conf - enter window titles, one per line, case insensitive. The Mascots will interact with these windows only. If no window titles are specified, all windows will be interacted with. Leaving this file empty should be ideal for most people.
 
-To navigate the XML files more comfortably, using an English version from the Shimeji-EE project as a roadmap can still help.
+For more information refer to the configuration files. 
 
-A conversion file for English XML files used in the EE version is included and any ShimejiEE mascot can be made fully functional with this version. Make sure you use a Japanese `Mascot.xsd` XML schema after the conversion, do not replace it with the English one. The filenames read by this version are the same as in the current official Shimeji: `Actions.xml` and `Behavior.xml`.
 
-Keep in mind:
+Obtaining more Shimejis
+==========================
+You can find thousands on www.deviantart.com and www.pixiv.net (tag: しめじ). This version uses Japanese Actions.xml and Behavior.xml files.
 
-- all images should go into the `img` directory
-- no subdirectories inside `img` are read
-- the same rule applies to configurations and the `conf` directory
+To navigate your way through the .xml files more comfortably, I recommend using an English version of the file from the [Shimeji-EE project](http://code.google.com/p/shimeji-ee/) project as a roadmap. 
 
-You will find `conv.sed` in the `conf` directory.
+A conversion file for English .xml files used in the EE-version is included and any ShimejiEE mascot can be made fully functional with this version. Make sure you use a Japanese Mascot.xsd XML-schema after the conversion, do not replace it with the English one. The filenames that are read by this version are the same as in the current official Shimeji, 'Actions.xml' and 'Behavior.xml'. Keep in mind that all images should go into the 'img' directory, no subdirectories inside will be read, same goes for configurations and the 'conf' directory.
 
-## Known issues
+You will find 'conv.sed' in the 'conf' directory. You can also find it separately [here](http://gist.github.com/2497639).
 
-- This fork only attempts a small, targeted flicker reduction. It does **not** modernize the rendering stack.
-- Wayland sessions are still not a realistic target for this codebase.
-- If you encounter trayicon-sized artifacts in the top-left corner of your screen, it's caused by an issue with Compton/XCompmgr and Java system tray spawning. The original author wrote a Compton patch for that issue instead of solving it inside this project.
+Detailed usage instructions can be found within the file.
 
-## Original project note
 
-The upstream project is archived and described by its author as ancient/legacy code. This fork only makes it easier to rebuild and test a targeted flicker-related behavior change on modern Ubuntu.
+Known issues
+===============
+If you encounter trayicon-sized artifacts in the top-left corner of your screen, it's caused by an issue with Compton/XCompmgr and Java system tray spawning. I was unable to solve the issue from within this program so I wrote a [patch for Compton](http://gist.github.com/2472719) instead.
 
-## License
 
-This project inherits the ZLIB/LIBPNG license of the original Shimeji.
+License
+==========
+This project inherits the ZLIB/LIBPNG license of the original [program](http://www.group-finity.com/Shimeji). 
+The included [Java Native Access](http://github.com/twall/jna) library is licensed under the LGPL. [The Mozilla Rhino Javascript Engine](http://www.mozilla.org/rhino)
+is licensed under the Mozilla Public License.
 
-The included Java Native Access library is licensed under the LGPL. The Mozilla Rhino Javascript Engine is licensed under the Mozilla Public License.
