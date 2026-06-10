@@ -23,6 +23,8 @@ A practical Ubuntu-focused Shimeji project with:
 
 This project is still based on an old Java/X11 codebase, so it is best treated as a hobby desktop-pet build rather than a perfectly modern desktop integration.
 
+This project includes modified code from an older Shimeji codebase, with Ubuntu/X11-focused usability changes.
+
 ## What changed in this project
 
 ### 1. Flicker reduction experiment
