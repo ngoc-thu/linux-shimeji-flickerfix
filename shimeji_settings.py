@@ -2,7 +2,6 @@
 import fcntl
 import os
 import shutil
-import signal
 import subprocess
 import sys
 import tkinter as tk
@@ -11,6 +10,7 @@ from tkinter import ttk, messagebox
 APP_ROOT = "/home/ngoctien/.openclaw/workspace/apps/linux-shimeji"
 WINDOW_CONF = os.path.join(APP_ROOT, "window.conf")
 TITLES_CONF = os.path.join(APP_ROOT, "titles.conf")
+SETTINGS_PROPS = os.path.join(APP_ROOT, "settings.properties")
 RUN_SCRIPT = os.path.join(APP_ROOT, "run-linux-shimeji.sh")
 CHARACTERS_DIR = os.path.join(APP_ROOT, "characters")
 IMG_DIR = os.path.join(APP_ROOT, "img")
@@ -99,6 +99,25 @@ def write_titles_conf(text):
         f.write(text)
 
 
+def read_settings_props():
+    props = {"selfCloningEnabled": True}
+    if not os.path.exists(SETTINGS_PROPS):
+        return props
+    with open(SETTINGS_PROPS, "r", encoding="utf-8", errors="replace") as f:
+        for raw in f:
+            line = raw.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            k, v = line.split("=", 1)
+            props[k.strip()] = v.strip().lower() == "true"
+    return props
+
+
+def write_settings_props(self_cloning_enabled):
+    with open(SETTINGS_PROPS, "w", encoding="utf-8") as f:
+        f.write("selfCloningEnabled=%s\n" % ("true" if self_cloning_enabled else "false"))
+
+
 def restart_shimeji():
     subprocess.run("pkill -f 'com.group_finity.mascot.Main'", shell=True)
     subprocess.Popen([RUN_SCRIPT], cwd=APP_ROOT)
@@ -108,23 +127,24 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Linux Shimeji Settings")
-        self.geometry("680x560")
-        self.minsize(640, 520)
+        self.geometry("700x600")
+        self.minsize(660, 560)
         self.configure(padx=12, pady=12)
         self.option_add("*Font", "Sans 10")
         self.character_var = tk.StringVar()
+        self.self_clone_var = tk.BooleanVar(value=True)
         self._build()
         self.load_values()
 
     def _build(self):
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(3, weight=1)
+        self.grid_rowconfigure(4, weight=1)
 
         top = ttk.Frame(self)
         top.grid(row=0, column=0, sticky="ew")
         top.grid_columnconfigure(0, weight=1)
         ttk.Label(top, text="Linux Shimeji Settings", font=("Sans", 14, "bold")).grid(row=0, column=0, sticky="w")
-        ttk.Label(top, text="Chỉnh nhân vật, vị trí bám cửa sổ và danh sách title được tương tác.").grid(row=1, column=0, sticky="w", pady=(4, 10))
+        ttk.Label(top, text="Chỉnh nhân vật, vị trí bám cửa sổ, titles và hành vi nhân bản.").grid(row=1, column=0, sticky="w", pady=(4, 10))
 
         chars = ttk.LabelFrame(self, text="Character")
         chars.grid(row=1, column=0, sticky="ew", pady=(0, 10))
@@ -134,8 +154,12 @@ class App(tk.Tk):
         self.character_combo.grid(row=0, column=1, sticky="ew", padx=(0, 10), pady=10)
         ttk.Button(chars, text="Apply Character", command=self.apply_character_only).grid(row=0, column=2, sticky="e", padx=(0, 10), pady=10)
 
+        behavior = ttk.LabelFrame(self, text="Behavior")
+        behavior.grid(row=2, column=0, sticky="ew", pady=(0, 10))
+        ttk.Checkbutton(behavior, text="Allow self-cloning / tự nhân bản", variable=self.self_clone_var).grid(row=0, column=0, sticky="w", padx=10, pady=10)
+
         offsets = ttk.LabelFrame(self, text="window.conf")
-        offsets.grid(row=2, column=0, sticky="ew", pady=(0, 10))
+        offsets.grid(row=3, column=0, sticky="ew", pady=(0, 10))
         for i in range(2):
             offsets.grid_columnconfigure(i, weight=1)
 
@@ -160,7 +184,7 @@ class App(tk.Tk):
         ttk.Label(offsets, text="Save rồi bấm Restart Shimeji để thấy thay đổi.").grid(row=2, column=0, columnspan=2, sticky="w", padx=10, pady=(0, 10))
 
         titles = ttk.LabelFrame(self, text="titles.conf")
-        titles.grid(row=3, column=0, sticky="nsew")
+        titles.grid(row=4, column=0, sticky="nsew")
         titles.grid_columnconfigure(0, weight=1)
         titles.grid_rowconfigure(1, weight=1)
         ttk.Label(titles, text="Mỗi dòng một title cửa sổ. Để trống = bám mọi cửa sổ.").grid(row=0, column=0, sticky="w", padx=10, pady=(8, 6))
@@ -176,7 +200,7 @@ class App(tk.Tk):
         yscroll.grid(row=0, column=1, sticky="ns")
 
         buttons = ttk.Frame(self)
-        buttons.grid(row=4, column=0, sticky="ew", pady=(12, 0))
+        buttons.grid(row=5, column=0, sticky="ew", pady=(12, 0))
         ttk.Button(buttons, text="Save", command=self.save).pack(side="left")
         ttk.Button(buttons, text="Apply + Restart", command=self.apply_all).pack(side="left", padx=8)
         ttk.Button(buttons, text="Reset window.conf", command=self.reset_window).pack(side="left")
@@ -191,6 +215,8 @@ class App(tk.Tk):
         if current not in chars and chars:
             current = chars[0]
         self.character_var.set(current)
+        props = read_settings_props()
+        self.self_clone_var.set(bool(props.get("selfCloningEnabled", True)))
         vals = read_window_conf()
         for key, val in zip(["x", "y", "w", "h"], vals):
             self.entries[key].delete(0, "end")
@@ -207,20 +233,24 @@ class App(tk.Tk):
             return False
         write_window_conf(vals)
         write_titles_conf(self.text.get("1.0", "end").rstrip() + "\n" if self.text.get("1.0", "end").strip() else "")
+        write_settings_props(self.self_clone_var.get())
+        messagebox.showinfo("Saved", "Đã lưu settings.")
         return True
 
     def apply_character_only(self):
         name = self.character_var.get().strip()
         if not name:
             messagebox.showerror("No character", "Chưa chọn nhân vật.")
-            return
+            return False
         apply_character(name)
         messagebox.showinfo("Character applied", f"Đã áp dụng nhân vật: {name}")
+        return True
 
     def apply_all(self):
         if not self.save():
             return
-        self.apply_character_only()
+        if not self.apply_character_only():
+            return
         self.restart()
 
     def reset_window(self):

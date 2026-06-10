@@ -65,6 +65,7 @@ public class Main {
 	private static final String WINDOW_CONF = APP_ROOT + File.separator + "window.conf";
 	private static final String TITLES_CONF = APP_ROOT + File.separator + "titles.conf";
 	private static final String SETTINGS_SCRIPT = APP_ROOT + File.separator + "run-settings.sh";
+	private static final String SETTINGS_PROPERTIES = APP_ROOT + File.separator + "settings.properties";
 
 	public static void main(final String[] args) {
 		System.setProperty("jna.nosys", "true");
@@ -334,6 +335,21 @@ public class Main {
 			new ProcessBuilder(SETTINGS_SCRIPT).directory(new File(APP_ROOT)).start();
 		} catch (final IOException e) {
 			log.log(Level.WARNING, "Failed to launch Settings GUI", e);
+		}
+	}
+
+	public boolean isSelfCloningEnabled() {
+		java.util.Properties props = new java.util.Properties();
+		java.io.File settingsFile = new java.io.File(SETTINGS_PROPERTIES);
+		if (!settingsFile.exists()) {
+			return true;
+		}
+		try (java.io.FileInputStream in = new java.io.FileInputStream(settingsFile)) {
+			props.load(in);
+			return Boolean.parseBoolean(props.getProperty("selfCloningEnabled", "true"));
+		} catch (final IOException e) {
+			log.log(Level.WARNING, "Failed to read settings.properties, defaulting selfCloningEnabled=true", e);
+			return true;
 		}
 	}
 

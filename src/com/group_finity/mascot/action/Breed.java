@@ -51,6 +51,10 @@ public class Breed extends Animate {
 	}
 
 	private void breed() throws VariableException {
+		if (!Main.getInstance().isSelfCloningEnabled()) {
+			log.log(Level.INFO, "Self-cloning disabled; skipping breed for {0}", getMascot());
+			return;
+		}
 
 		// マスコットを1個作成
 		final Mascot mascot = new Mascot();
