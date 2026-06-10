@@ -11,6 +11,7 @@ A practical Ubuntu-focused fork of `estenv/linux-shimeji` with:
 - a small Settings GUI
 - multi-character switching
 - bundled character libraries for **Ayaka** and **Hatsune Miku**
+- a toggle to enable or disable mascot self-cloning
 
 This fork is still based on an old Java/X11 codebase, so it is best treated as a hobby desktop-pet build rather than a perfectly modern desktop integration.
 
@@ -46,6 +47,7 @@ It can:
 - edit `window.conf`
 - edit `titles.conf`
 - apply a selected character
+- enable or disable self-cloning
 - restart Shimeji
 - open the app folder
 
@@ -129,8 +131,21 @@ From there you can:
 
 - choose a character
 - apply the selected character
+- enable or disable self-cloning
 - save window/title configuration
 - restart the mascot
+
+The self-cloning toggle is persisted in:
+
+```text
+settings.properties
+```
+
+Current property used by the app:
+
+```properties
+selfCloningEnabled=true
+```
 
 ## Character switching
 
@@ -156,6 +171,13 @@ Controls manual offsets:
 
 ### `titles.conf`
 One window title per line. Leave empty to allow interaction with all windows.
+
+### `settings.properties`
+Additional runtime behavior flags live here.
+
+Currently supported:
+
+- `selfCloningEnabled=true|false`
 
 ## Known limitations
 
