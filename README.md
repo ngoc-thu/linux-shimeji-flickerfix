@@ -1,5 +1,9 @@
 # linux-shimeji-flickerfix
 
+<p align="center">
+  <img src="docs/images/linux-shimeji-icon.png" alt="linux-shimeji icon" width="64" height="64" />
+</p>
+
 A practical Ubuntu-focused fork of `estenv/linux-shimeji` with:
 
 - reduced flicker experiments for modern compositors
@@ -64,6 +68,19 @@ Currently bundled in this fork:
 
 - **Ayaka**
 - **Hatsune Miku**
+
+### Character previews
+
+<table>
+  <tr>
+    <td align="center"><strong>Ayaka</strong></td>
+    <td align="center"><strong>Hatsune Miku</strong></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/images/ayaka-preview.png" alt="Ayaka preview" width="128" /></td>
+    <td align="center"><img src="docs/images/miku-preview.png" alt="Hatsune Miku preview" width="128" /></td>
+  </tr>
+</table>
 
 ## Requirements
 
