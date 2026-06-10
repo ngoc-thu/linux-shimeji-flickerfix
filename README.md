@@ -1,93 +1,165 @@
-2025 - Archived 
-=================
-This program is ancient and requires a legacy Java version, I can't help you with any issues you encounter so use at your own discretion.
+# linux-shimeji-flickerfix
 
-I had plans to rewrite the entire program in another language and with proper Wayland support but obtaining the full active window tree with dimensions seems quite impossible in Wayland Gnome/KDE. 
+A practical Ubuntu-focused fork of `estenv/linux-shimeji` with:
 
-If the Wayland situation changes I'll rewrite this but it is quite grim: Hyprland seems like the only WM that could be supported with a reasonable amount of effort.
+- reduced flicker experiments for modern compositors
+- X11 frame/layer behavior tweaks
+- a small Settings GUI
+- multi-character switching
+- bundled character libraries for **Ayaka** and **Hatsune Miku**
 
-![Shimeji for Linux](http://i.imgur.com/efHyX.png "Shimeji for Linux")
-Shimeji for Linux
-=================
+This fork is still based on an old Java/X11 codebase, so it is best treated as a hobby desktop-pet build rather than a perfectly modern desktop integration.
 
-This is a Linux version of the popular desktop mascot program, Shimeji.
+## What changed in this fork
 
-I appreciate any bug reports or suggestions. Use the issue tracker here or contact me directly on IRC (Rizon) where I'm called 'asdfman'.
+### 1. Flicker reduction experiment
+This fork removes an old visibility toggle in `src/com/group_finity/mascot/Mascot.java` that hid the mascot window on specific ticks.
 
+That old behavior can show up as visible blinking/flicker on modern Ubuntu GNOME/X11 compositors.
 
-Changelog
-=========
-v1.05
-- Greatly reduced CPU usage (noticeable with few active mascots)
-- Remake of multi monitor behavior 
+### 2. Modern build compatibility
+`build.xml` was updated so the project can be rebuilt with a current JDK + Ant toolchain instead of requiring an old Java 6 era setup.
 
-v1.04
-- Window layering detection.
-- Fixed multi monitor behavior
+### 3. X11 frame and layer behavior tweaks
+This fork includes experiments around:
 
-v1.03
-- Complete remakes of the window state/type handling. AwesomeWM-users should have no more issues.
-- A conversion script for Shimeji-EE configurations is now included.
+- corrected `Rectangle` bounds handling
+- `_NET_FRAME_EXTENTS` support for window frame calculations
+- more consistent use of frame bounds in X11 environment logic
+- disabling old `DOCK` forcing behavior that could place the mascot in an odd stacking layer
+- reasserting `alwaysOnTop` / `toFront()` during apply
 
-v1.02
-- Full functionality with all standard Behavior.xml and Actions.xml files. Feel free to use any Shimeji you find and edit the files as you see fit.
+These changes are specifically aimed at improving behavior on Ubuntu GNOME/X11 where mascots may otherwise flicker, clip into bars, or appear on the wrong layer.
 
-v1.01
-- All normal desktop windows should now be detected and interacted with correctly, titles.conf now defaults to an empty file.
-- The mascots are now set a 'dock' window type property, using compton/xcompmgr with -C will not draw window shadows on them.
+### 4. Built-in Settings GUI
+A lightweight GUI settings tool is included:
 
-22.4.2012 v1.0
-- Initial release, all basic functionality implemented
+- `shimeji_settings.py`
+- `run-settings.sh`
 
-Requirements
-===============
-A compositing manager, [Compton](http://github.com/chjj/compton) is highly recommended. 
+It can:
 
-Tested with both OpenJDK 6 and SunJDK 6 JRE's. There were some issues on Gnome and KDE when using OpenJDK, if you experience them the only solution I can offer is using Sun JRE, should solve all problems. 
+- edit `window.conf`
+- edit `titles.conf`
+- apply a selected character
+- restart Shimeji
+- open the app folder
 
+### 5. Multi-character switching
+This fork supports a simple character library layout:
 
-Usage
-========
-Obtain the repository :
-git clone https://github.com/asdfman/linux-shimeji.git OR download a zip archive on the github page
+```text
+characters/
+  Ayaka/
+  Miku/
+```
 
-To run, execute launch.sh in the project root directory. (eg. ./launch.sh)
+Each character folder contains `shime1.png` through `shime46.png`.
 
-To build, execute 'ant' in the project root directory.
+The Settings GUI can switch between bundled characters and apply them into the active `img/` set.
 
-Note that the program comes pre-compiled and you do not need to build unless you plan to modify the source.
+## Included characters
 
+Currently bundled in this fork:
 
-Configuration
-================
-- window.conf - set window dimensions to match your window decorations. If you're using a plain WM with no decorations, zero on all values or an empty file should be accurate
+- **Ayaka**
+- **Hatsune Miku**
 
-- titles.conf - enter window titles, one per line, case insensitive. The Mascots will interact with these windows only. If no window titles are specified, all windows will be interacted with. Leaving this file empty should be ideal for most people.
+## Requirements
 
-For more information refer to the configuration files. 
+Recommended environment:
 
+- Ubuntu or another Linux desktop using **X11**
+- `openjdk-21-jdk` (or another modern JDK)
+- `ant`
 
-Obtaining more Shimejis
-==========================
-You can find thousands on www.deviantart.com and www.pixiv.net (tag: しめじ). This version uses Japanese Actions.xml and Behavior.xml files.
+Example install:
 
-To navigate your way through the .xml files more comfortably, I recommend using an English version of the file from the [Shimeji-EE project](http://code.google.com/p/shimeji-ee/) project as a roadmap. 
+```bash
+sudo apt-get update
+sudo apt-get install -y openjdk-21-jdk ant
+```
 
-A conversion file for English .xml files used in the EE-version is included and any ShimejiEE mascot can be made fully functional with this version. Make sure you use a Japanese Mascot.xsd XML-schema after the conversion, do not replace it with the English one. The filenames that are read by this version are the same as in the current official Shimeji, 'Actions.xml' and 'Behavior.xml'. Keep in mind that all images should go into the 'img' directory, no subdirectories inside will be read, same goes for configurations and the 'conf' directory.
+Wayland is not an expected target for this codebase.
 
-You will find 'conv.sed' in the 'conf' directory. You can also find it separately [here](http://gist.github.com/2497639).
+## Build
 
-Detailed usage instructions can be found within the file.
+```bash
+git clone https://github.com/ngoc-thu/linux-shimeji-flickerfix.git
+cd linux-shimeji-flickerfix
+ant clean jar
+```
 
+## Run
 
-Known issues
-===============
-If you encounter trayicon-sized artifacts in the top-left corner of your screen, it's caused by an issue with Compton/XCompmgr and Java system tray spawning. I was unable to solve the issue from within this program so I wrote a [patch for Compton](http://gist.github.com/2472719) instead.
+Use the original launcher:
 
+```bash
+./launch.sh
+```
 
-License
-==========
-This project inherits the ZLIB/LIBPNG license of the original [program](http://www.group-finity.com/Shimeji). 
-The included [Java Native Access](http://github.com/twall/jna) library is licensed under the LGPL. [The Mozilla Rhino Javascript Engine](http://www.mozilla.org/rhino)
-is licensed under the Mozilla Public License.
+Or run the jar entrypoint using the local launch wrapper if you created one in your environment.
 
+## Settings GUI
+
+Launch the Settings GUI with:
+
+```bash
+./run-settings.sh
+```
+
+From there you can:
+
+- choose a character
+- apply the selected character
+- save window/title configuration
+- restart the mascot
+
+## Character switching
+
+The Settings GUI uses the `characters/` directory as the source of truth.
+
+To add a new character manually:
+
+1. create a new folder under `characters/NAME/`
+2. place `shime1.png` through `shime46.png` inside it
+3. reopen the Settings GUI
+4. select that character from the dropdown
+5. click **Apply Character** or **Apply + Restart**
+
+## Configuration
+
+### `window.conf`
+Controls manual offsets:
+
+1. x offset
+2. y offset
+3. width add
+4. height add
+
+### `titles.conf`
+One window title per line. Leave empty to allow interaction with all windows.
+
+## Known limitations
+
+- This is still legacy Java/X11 code.
+- Rendering behavior may vary by compositor, theme, GPU, and desktop environment.
+- Some Ubuntu GNOME setups may still need manual tuning in `window.conf`.
+- Wayland support is not a goal of this fork.
+
+## Origin and intent
+
+The upstream project is archived and describes itself as old/legacy code.
+
+This fork exists to make it easier to:
+
+- rebuild on a modern Ubuntu machine
+- test small targeted fixes
+- use a friendlier local settings workflow
+- swap characters without manually replacing the image set every time
+
+## License
+
+This project inherits the ZLIB/LIBPNG license of the original Shimeji.
+
+The included Java Native Access library is licensed under the LGPL. The Mozilla Rhino Javascript Engine is licensed under the Mozilla Public License.
