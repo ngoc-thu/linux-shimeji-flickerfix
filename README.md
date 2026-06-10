@@ -8,7 +8,7 @@
   <img src="docs/images/linux-shimeji-icon.png" alt="linux-shimeji icon" width="64" height="64" />
 </p>
 
-A practical Ubuntu-focused fork of `estenv/linux-shimeji` with:
+A practical Ubuntu-focused Shimeji project with:
 
 - reduced flicker experiments for modern compositors
 - X11 frame/layer behavior tweaks
@@ -17,12 +17,12 @@ A practical Ubuntu-focused fork of `estenv/linux-shimeji` with:
 - bundled character libraries for **Ayaka** and **Hatsune Miku**
 - a toggle to enable or disable mascot self-cloning
 
-This fork is still based on an old Java/X11 codebase, so it is best treated as a hobby desktop-pet build rather than a perfectly modern desktop integration.
+This project is still based on an old Java/X11 codebase, so it is best treated as a hobby desktop-pet build rather than a perfectly modern desktop integration.
 
-## What changed in this fork
+## What changed in this project
 
 ### 1. Flicker reduction experiment
-This fork removes an old visibility toggle in `src/com/group_finity/mascot/Mascot.java` that hid the mascot window on specific ticks.
+This project removes an old visibility toggle in `src/com/group_finity/mascot/Mascot.java` that hid the mascot window on specific ticks.
 
 That old behavior can show up as visible blinking/flicker on modern Ubuntu GNOME/X11 compositors.
 
@@ -30,7 +30,7 @@ That old behavior can show up as visible blinking/flicker on modern Ubuntu GNOME
 `build.xml` was updated so the project can be rebuilt with a current JDK + Ant toolchain instead of requiring an old Java 6 era setup.
 
 ### 3. X11 frame and layer behavior tweaks
-This fork includes experiments around:
+This project includes experiments around:
 
 - corrected `Rectangle` bounds handling
 - `_NET_FRAME_EXTENTS` support for window frame calculations
@@ -56,7 +56,7 @@ It can:
 - open the app folder
 
 ### 5. Multi-character switching
-This fork supports a simple character library layout:
+This project supports a simple character library layout:
 
 ```text
 characters/
@@ -70,7 +70,7 @@ The Settings GUI can switch between bundled characters and apply them into the a
 
 ## Included characters
 
-Currently bundled in this fork:
+Currently bundled in this project:
 
 - **Ayaka**
 - **Hatsune Miku**
@@ -188,13 +188,11 @@ Currently supported:
 - This is still legacy Java/X11 code.
 - Rendering behavior may vary by compositor, theme, GPU, and desktop environment.
 - Some Ubuntu GNOME setups may still need manual tuning in `window.conf`.
-- Wayland support is not a goal of this fork.
+- Wayland support is not a goal of this project.
 
-## Origin and intent
+## Project intent
 
-The upstream project is archived and describes itself as old/legacy code.
-
-This fork exists to make it easier to:
+This project exists to make it easier to:
 
 - rebuild on a modern Ubuntu machine
 - test small targeted fixes
