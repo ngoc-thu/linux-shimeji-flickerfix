@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import fcntl
 import os
+import shutil
 import signal
 import subprocess
 import sys
@@ -11,6 +12,9 @@ APP_ROOT = "/home/ngoctien/.openclaw/workspace/apps/linux-shimeji"
 WINDOW_CONF = os.path.join(APP_ROOT, "window.conf")
 TITLES_CONF = os.path.join(APP_ROOT, "titles.conf")
 RUN_SCRIPT = os.path.join(APP_ROOT, "run-linux-shimeji.sh")
+CHARACTERS_DIR = os.path.join(APP_ROOT, "characters")
+IMG_DIR = os.path.join(APP_ROOT, "img")
+CURRENT_CHARACTER = os.path.join(APP_ROOT, ".current_character")
 LOCK_FILE = "/tmp/linux-shimeji-settings.lock"
 
 HEADER = "Put window offsets on the following lines in this order : x, y, width, height. No entry will default to 0."
@@ -20,21 +24,50 @@ _lock_handle = None
 
 def acquire_single_instance_lock():
     global _lock_handle
-    _lock_handle = open(LOCK_FILE, "w")
+    _lock_handle = open(LOCK_FILE, "a+")
     try:
         fcntl.flock(_lock_handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        _lock_handle.seek(0)
+        _lock_handle.truncate()
         _lock_handle.write(str(os.getpid()))
         _lock_handle.flush()
         return True
     except OSError:
-        try:
-            _lock_handle.seek(0)
-            pid_text = _lock_handle.read().strip()
-            if pid_text.isdigit():
-                os.kill(int(pid_text), signal.SIGTERM)
-        except Exception:
-            pass
         return False
+
+
+def list_characters():
+    if not os.path.isdir(CHARACTERS_DIR):
+        return []
+    names = []
+    for name in sorted(os.listdir(CHARACTERS_DIR)):
+        path = os.path.join(CHARACTERS_DIR, name)
+        if os.path.isdir(path) and os.path.exists(os.path.join(path, "shime1.png")):
+            names.append(name)
+    return names
+
+
+def detect_current_character():
+    if os.path.exists(CURRENT_CHARACTER):
+        with open(CURRENT_CHARACTER, "r", encoding="utf-8", errors="replace") as f:
+            val = f.read().strip()
+        if val:
+            return val
+    return "Ayaka"
+
+
+def set_current_character(name):
+    with open(CURRENT_CHARACTER, "w", encoding="utf-8") as f:
+        f.write(name + "\n")
+
+
+def apply_character(name):
+    src = os.path.join(CHARACTERS_DIR, name)
+    if not os.path.isdir(src):
+        raise FileNotFoundError(f"Character not found: {name}")
+    for i in range(1, 47):
+        shutil.copyfile(os.path.join(src, f"shime{i}.png"), os.path.join(IMG_DIR, f"shime{i}.png"))
+    set_current_character(name)
 
 
 def read_window_conf():
@@ -75,26 +108,35 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Linux Shimeji Settings")
-        self.geometry("640x520")
-        self.minsize(620, 500)
+        self.geometry("680x560")
+        self.minsize(640, 520)
         self.configure(padx=12, pady=12)
         self.option_add("*Font", "Sans 10")
+        self.character_var = tk.StringVar()
         self._build()
         self.load_values()
 
     def _build(self):
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(2, weight=1)
+        self.grid_rowconfigure(3, weight=1)
 
         top = ttk.Frame(self)
         top.grid(row=0, column=0, sticky="ew")
         top.grid_columnconfigure(0, weight=1)
         ttk.Label(top, text="Linux Shimeji Settings", font=("Sans", 14, "bold")).grid(row=0, column=0, sticky="w")
-        ttk.Label(top, text="Chỉnh vị trí bám cửa sổ và danh sách title được tương tác.").grid(row=1, column=0, sticky="w", pady=(4, 10))
+        ttk.Label(top, text="Chỉnh nhân vật, vị trí bám cửa sổ và danh sách title được tương tác.").grid(row=1, column=0, sticky="w", pady=(4, 10))
+
+        chars = ttk.LabelFrame(self, text="Character")
+        chars.grid(row=1, column=0, sticky="ew", pady=(0, 10))
+        chars.grid_columnconfigure(1, weight=1)
+        ttk.Label(chars, text="Current character").grid(row=0, column=0, sticky="w", padx=10, pady=10)
+        self.character_combo = ttk.Combobox(chars, textvariable=self.character_var, state="readonly", values=list_characters())
+        self.character_combo.grid(row=0, column=1, sticky="ew", padx=(0, 10), pady=10)
+        ttk.Button(chars, text="Apply Character", command=self.apply_character_only).grid(row=0, column=2, sticky="e", padx=(0, 10), pady=10)
 
         offsets = ttk.LabelFrame(self, text="window.conf")
-        offsets.grid(row=1, column=0, sticky="ew", pady=(0, 10))
-        for i in range(4):
+        offsets.grid(row=2, column=0, sticky="ew", pady=(0, 10))
+        for i in range(2):
             offsets.grid_columnconfigure(i, weight=1)
 
         self.entries = {}
@@ -118,7 +160,7 @@ class App(tk.Tk):
         ttk.Label(offsets, text="Save rồi bấm Restart Shimeji để thấy thay đổi.").grid(row=2, column=0, columnspan=2, sticky="w", padx=10, pady=(0, 10))
 
         titles = ttk.LabelFrame(self, text="titles.conf")
-        titles.grid(row=2, column=0, sticky="nsew")
+        titles.grid(row=3, column=0, sticky="nsew")
         titles.grid_columnconfigure(0, weight=1)
         titles.grid_rowconfigure(1, weight=1)
         ttk.Label(titles, text="Mỗi dòng một title cửa sổ. Để trống = bám mọi cửa sổ.").grid(row=0, column=0, sticky="w", padx=10, pady=(8, 6))
@@ -134,14 +176,21 @@ class App(tk.Tk):
         yscroll.grid(row=0, column=1, sticky="ns")
 
         buttons = ttk.Frame(self)
-        buttons.grid(row=3, column=0, sticky="ew", pady=(12, 0))
+        buttons.grid(row=4, column=0, sticky="ew", pady=(12, 0))
         ttk.Button(buttons, text="Save", command=self.save).pack(side="left")
-        ttk.Button(buttons, text="Reset window.conf", command=self.reset_window).pack(side="left", padx=8)
-        ttk.Button(buttons, text="Restart Shimeji", command=self.restart).pack(side="left")
-        ttk.Button(buttons, text="Open App Folder", command=self.open_folder).pack(side="left", padx=8)
+        ttk.Button(buttons, text="Apply + Restart", command=self.apply_all).pack(side="left", padx=8)
+        ttk.Button(buttons, text="Reset window.conf", command=self.reset_window).pack(side="left")
+        ttk.Button(buttons, text="Restart Shimeji", command=self.restart).pack(side="left", padx=8)
+        ttk.Button(buttons, text="Open App Folder", command=self.open_folder).pack(side="left")
         ttk.Button(buttons, text="Close", command=self.destroy).pack(side="right")
 
     def load_values(self):
+        chars = list_characters()
+        self.character_combo["values"] = chars
+        current = detect_current_character()
+        if current not in chars and chars:
+            current = chars[0]
+        self.character_var.set(current)
         vals = read_window_conf()
         for key, val in zip(["x", "y", "w", "h"], vals):
             self.entries[key].delete(0, "end")
@@ -155,10 +204,24 @@ class App(tk.Tk):
             [int(v) for v in vals]
         except ValueError:
             messagebox.showerror("Invalid number", "4 ô window.conf phải là số nguyên.")
-            return
+            return False
         write_window_conf(vals)
         write_titles_conf(self.text.get("1.0", "end").rstrip() + "\n" if self.text.get("1.0", "end").strip() else "")
-        messagebox.showinfo("Saved", "Đã lưu settings.")
+        return True
+
+    def apply_character_only(self):
+        name = self.character_var.get().strip()
+        if not name:
+            messagebox.showerror("No character", "Chưa chọn nhân vật.")
+            return
+        apply_character(name)
+        messagebox.showinfo("Character applied", f"Đã áp dụng nhân vật: {name}")
+
+    def apply_all(self):
+        if not self.save():
+            return
+        self.apply_character_only()
+        self.restart()
 
     def reset_window(self):
         for key, val in zip(["x", "y", "w", "h"], DEFAULT_WINDOW):
@@ -166,7 +229,6 @@ class App(tk.Tk):
             self.entries[key].insert(0, val)
 
     def restart(self):
-        self.save()
         try:
             restart_shimeji()
             messagebox.showinfo("Restarted", "Đã restart Linux Shimeji.")
