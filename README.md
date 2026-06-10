@@ -8,6 +8,10 @@
   <img src="docs/images/linux-shimeji-icon.png" alt="linux-shimeji icon" width="64" height="64" />
 </p>
 
+<p align="center">
+  <a href="https://github.com/ngoc-thu/shimeji-ubuntu/releases/latest">⬇ Download latest release</a>
+</p>
+
 A practical Ubuntu-focused Shimeji project with:
 
 - reduced flicker experiments for modern compositors
